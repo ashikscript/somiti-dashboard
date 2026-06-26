@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Somiti Passbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<meta name="theme-color" content="#0A0E0D">
+</head>
+<body>
+
+  <!-- ===== HERO / PASSBOOK COVER ===== -->
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="hero-top">
+        <span class="hero-eyebrow">Digital Passbook</span>
+        <button id="loginToggleBtn" class="ghost-pill" type="button">Collector login</button>
+      </div>
+
+      <h1 id="somitiName" class="hero-title">Somiti Tracker</h1>
+      <p class="hero-sub" id="hero-sub">Loading ledger…</p>
+
+      <div class="gauge-row">
+        <div class="gauge-figure">
+          <span class="gauge-label">Collected so far</span>
+          <span class="gauge-amount" id="amountCollected">৳ 0</span>
+          <span class="gauge-of">of <span id="amountTarget">৳ 0</span> target</span>
+        </div>
+        <div class="gauge-bar-track">
+          <div class="gauge-bar-fill" id="gaugeFill" style="width:0%"></div>
+        </div>
+        <div class="gauge-months" id="monthsLabel">Month 0 of 0</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== LOGIN PANEL (hidden by default) ===== -->
+  <div class="login-panel" id="loginPanel" hidden>
+    <div class="login-card">
+      <h3>Collector login</h3>
+      <p class="muted-text">Only the two collectors need an account. Everyone else can view without logging in.</p>
+      <input type="email" id="loginEmail" placeholder="Email" autocomplete="username" />
+      <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" />
+      <div class="login-actions">
+        <button id="loginSubmitBtn" class="solid-btn">Log in</button>
+        <button id="loginCancelBtn" class="text-btn">Cancel</button>
+      </div>
+      <p class="login-error" id="loginError" hidden></p>
+    </div>
+  </div>
+
+  <main class="page">
+
+    <!-- ===== STAT CARDS ===== -->
+    <section class="stats-row" id="statsRow" aria-label="Summary">
+      <div class="stat-card">
+        <span class="stat-num" id="statMembers">0</span>
+        <span class="stat-label">Members</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="statShares">0</span>
+        <span class="stat-label">Total shares</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="statMonthlyTarget">৳0</span>
+        <span class="stat-label">Monthly target</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="statDeposited">৳0</span>
+        <span class="stat-label">Deposited to bank</span>
+      </div>
+    </section>
+
+    <!-- ===== ADMIN BAR (visible only when logged in) ===== -->
+    <section class="admin-bar" id="adminBar" hidden>
+      <span class="admin-bar-label">Logged in as <strong id="adminEmail"></strong></span>
+      <div class="admin-bar-actions">
+        <button id="openSettingsBtn" class="text-btn">Somiti settings</button>
+        <button id="logoutBtn" class="text-btn">Log out</button>
+      </div>
+    </section>
+
+    <!-- ===== SETTINGS MODAL (admin) ===== -->
+    <div class="modal-backdrop" id="settingsModal" hidden>
+      <div class="modal-card">
+        <h3>Somiti settings</h3>
+        <label>Somiti name
+          <input type="text" id="setName" />
+        </label>
+        <label>Total months
+          <input type="number" id="setTotalMonths" min="1" />
+        </label>
+        <label>Amount per share (৳ / month)
+          <input type="number" id="setShareAmount" min="1" />
+        </label>
+        <div class="login-actions">
+          <button id="saveSettingsBtn" class="solid-btn">Save</button>
+          <button id="closeSettingsBtn" class="text-btn">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MEMBERS (admin add/edit) ===== -->
+    <section class="panel" id="membersPanel">
+      <div class="panel-head">
+        <h2>Members</h2>
+        <div style="display:flex;gap:10px;">
+          <button id="quickSeedBtn" class="text-btn" hidden>Quick-add 19 members (7×2 shares, 12×1 share)</button>
+          <button id="addMemberBtn" class="solid-btn small" hidden>+ Add member</button>
+        </div>
+      </div>
+
+      <div class="modal-backdrop" id="memberModal" hidden>
+        <div class="modal-card">
+          <h3 id="memberModalTitle">Add member</h3>
+          <label>Name
+            <input type="text" id="memberName" placeholder="e.g. Rahim Uddin" />
+          </label>
+          <label>Number of accounts / shares
+            <select id="memberShares">
+              <option value="1">1 (৳500 / month)</option>
+              <option value="2">2 (৳1000 / month)</option>
+            </select>
+          </label>
+          <div class="login-actions">
+            <button id="saveMemberBtn" class="solid-btn">Save</button>
+            <button id="cancelMemberBtn" class="text-btn">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="member-list" id="memberList"></div>
+    </section>
+
+    <!-- ===== LEDGER GRID ===== -->
+    <section class="panel" id="ledgerPanel">
+      <div class="panel-head">
+        <h2>Payment ledger</h2>
+        <p class="muted-text small-note">Tap a circle to stamp a month as paid. Scroll sideways to see every month.</p>
+      </div>
+      <div class="ledger-scroll">
+        <table class="ledger-table" id="ledgerTable">
+          <thead>
+            <tr id="ledgerHeadRow"><th class="sticky-col">Member</th></tr>
+          </thead>
+          <tbody id="ledgerBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== BANK DEPOSIT LOG ===== -->
+    <section class="panel" id="depositsPanel">
+      <div class="panel-head">
+        <h2>Bank deposit log</h2>
+        <button id="addDepositBtn" class="solid-btn small" hidden>+ Log deposit</button>
+      </div>
+
+      <div class="modal-backdrop" id="depositModal" hidden>
+        <div class="modal-card">
+          <h3 id="depositModalTitle">Log a bank deposit</h3>
+          <label>Month number
+            <input type="number" id="depositMonth" min="1" />
+          </label>
+          <label>Amount deposited (৳)
+            <input type="number" id="depositAmount" min="0" />
+          </label>
+          <label>Date deposited
+            <input type="date" id="depositDate" />
+          </label>
+          <label>Deposited by
+            <input type="text" id="depositBy" placeholder="Collector's name" />
+          </label>
+          <label>Note (optional)
+            <input type="text" id="depositNote" placeholder="e.g. DPS account no." />
+          </label>
+          <div class="login-actions">
+            <button id="saveDepositBtn" class="solid-btn">Save</button>
+            <button id="cancelDepositBtn" class="text-btn">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <table class="deposit-table" id="depositTable">
+        <thead>
+          <tr><th>Month</th><th>Date deposited</th><th>Amount</th><th>Deposited by</th><th>Note</th><th></th></tr>
+        </thead>
+        <tbody id="depositBody"></tbody>
+      </table>
+      <p class="muted-text small-note" id="depositEmptyNote" hidden>No deposits logged yet.</p>
+    </section>
+
+    <footer class="page-footer">
+      <p>Built for the somiti · data syncs live across every device</p>
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
